@@ -25,12 +25,13 @@ class k_means:
         for i in range(0,len(self.data)):
             min_index=0
             min_value=1e100
+            data=self.data[i,:]
             for j in range(0,len(self.center)):
-                square=self.distance(self.center[j],self.data[i])
+                square=self.distance(self.center[j],data)
                 if(square<min_value):
                     min_index=j
                     min_value=square
-            self.new_center[min_index]+=self.data[i]
+            self.new_center[min_index]+=data
             self.count[min_index]+=1
         self.new_center=self.new_center/self.count.reshape((-1,1))
         self.center=self.new_center
@@ -40,8 +41,9 @@ class k_means:
         for i in range(0,len(self.data)):
             min_index=0
             min_value=1e100
+            data=self.data[i,:]
             for j in range(0,len(self.center)):
-                square=self.distance(self.center[j],self.data[i])
+                square=self.distance(self.center[j],data)
                 if(square<min_value):
                     min_index=j
                     min_value=square
@@ -50,8 +52,10 @@ class k_means:
         return predict_index
 
 if __name__ == '__main__':
-    clusters=100
+    clusters=20
     data,label_family,label_genus,label_species,label_record=data_reader.read_frog_data()
+    data=PCA.pca(data,10)
+    print(data.shape)
     label=np.argmin(-label_family,axis=1)
     predictor=k_means(data,label,clusters)
     predictor.init_center()
