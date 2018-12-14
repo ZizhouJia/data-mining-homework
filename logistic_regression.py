@@ -1,16 +1,13 @@
 import numpy as np
 import data_reader
+import evaluation
 
 class bank_dataset:
     def __init__(self):
         self.data,self.label=data_reader.read_bank_data()
-        data_part1=data_reader.process_number_to_label(self.data[:,0:9])
-        data_part2=self.data[:,9:]
-        print(self.data.shape)
-        print(data_part1.shape)
-        print(data_part2.shape)
-        self.data=np.concatenate((data_part1,data_part2),axis=1)
-        print(self.data.shape)
+        # data_part1=data_reader.process_number_to_label(self.data[:,0:9])
+        # data_part2=self.data[:,9:]
+        # self.data=np.concatenate((data_part1,data_part2),axis=1)
         self.label=np.reshape(self.label,(-1))
         self.data_neg=self.data[self.label<0.5]
         self.data_pos=self.data[self.label>0.5]
@@ -23,7 +20,7 @@ class bank_dataset:
         np.random.shuffle(self.data)
         np.random.set_state(state)
         np.random.shuffle(self.label)
-        # self.data=self.normalize(self.data)
+        self.data=self.normalize(self.data)
         self.train_X=[]
         self.train_Y=[]
         self.test_X=[]
@@ -77,12 +74,12 @@ class logistic_regression:
         output=1.0/(1.0+np.exp(-output))
         return output
 
-    def train(self,input,label,learning_rate=0.0001,l2=1.0):
+    def train(self,input,label,learning_rate=0.1,l2=0.1):
         label=np.reshape(label,(-1,1))
         batch_size=input.shape[0]
         output=self.predict(input)
         cha=label-output
-        self.W=self.W*(1-learning_rate*l2/batch_size)+learning_rate*np.sum(cha*input,axis=0)/batch_size
+        self.W=self.W*(1-learning_rate*l2/batch_size)+learning_rate*np.sum(cha*input,axis=0).reshape(-1,1)/batch_size
         self.b=self.b*(1-learning_rate*l2/batch_size)+learning_rate*np.sum(cha)/batch_size
 
     def calculate_acc(self,input,label):
@@ -115,6 +112,10 @@ if __name__ == '__main__':
             data,label,epoch_end_mark=dataset.next_batch()
             classifier.train(data,label)
         test_data,test_label=dataset.get_test_set()
-        acc=classifier.calculate_acc(test_data,test_label)
+        prediction=classifier.predict(test_data)
+        acc,precision,recall=evaluation.class_evaluation(prediction,test_label,0.5)
         loss,loss2=classifier.calculate_loss(test_data,test_label)
-        print("in epoch %d the acc is: %.4f the loss is: %.4f l2 loss is: %.4f"%(i,acc,loss,loss2))
+        print("in epoch %d the acc is: %.4f %.4f %.4f the loss is: %.4f l2 loss is: %.4f"%(i,acc,precision,recall,loss,loss2))
+    test_data,test_label=dataset.get_test_set()
+    prediction=classifier.predict(test_data)
+    evaluation.ROC(prediction,test_label)

@@ -1,6 +1,10 @@
 import numpy as np
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
 
 def class_evaluation(prediction, ground_truth, threshold):
+    prediction=prediction.reshape(-1)
+    ground_truth=ground_truth.reshape(-1)
     mask = prediction>threshold
     prediction[mask] = 1
     prediction[~mask] = 0
@@ -62,3 +66,18 @@ def format_F_score(F_score):
     for score in F_score:
         string+=str(score)+","
     return string[:-1]
+
+def ROC(prediction,label):
+    prediction=prediction.reshape(-1)
+    label=label.reshape(-1).astype(np.int)
+    fpr,tpr,thre = roc_curve(label,prediction)
+    auc_value = auc(fpr,tpr)
+    plt.plot(fpr,tpr,color = 'darkred',label = 'roc area:(%0.2f)'%auc_value)
+    plt.plot([0,1],[0,1],linestyle = '--')
+    plt.xlim([0,1])
+    plt.ylim([0,1])
+    plt.xlabel('fpr')
+    plt.ylabel('tpr')
+    plt.title('roc_curve')
+    plt.legend(loc = 'lower right')
+    plt.show()
