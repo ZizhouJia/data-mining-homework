@@ -9,13 +9,6 @@ class bank_dataset:
         # data_part2=self.data[:,9:]
         # self.data=np.concatenate((data_part1,data_part2),axis=1)
         self.label=np.reshape(self.label,(-1))
-        self.data_neg=self.data[self.label<0.5]
-        self.data_pos=self.data[self.label>0.5]
-        self.data_pos=np.repeat(self.data_pos,int(len(self.data_neg)/len(self.data_pos)),axis=0)
-        self.label_pos=np.ones(len(self.data_pos))
-        self.label_neg=np.zeros(len(self.data_neg))
-        self.data=np.concatenate((self.data_pos,self.data_neg),axis=0)
-        self.label=np.concatenate((self.label_pos,self.label_neg),axis=0)
         state=np.random.get_state()
         np.random.shuffle(self.data)
         np.random.set_state(state)
@@ -36,6 +29,17 @@ class bank_dataset:
         self.test_X=np.array(self.test_X)
         self.train_Y=np.array(self.train_Y)
         self.test_Y=np.array(self.test_Y)
+        self.data=self.train_X
+        self.label=self.train_Y
+        self.data_neg=self.data[self.label<0.5]
+        self.data_pos=self.data[self.label>0.5]
+        self.data_pos=np.repeat(self.data_pos,int(len(self.data_neg)/len(self.data_pos)),axis=0)
+        self.label_pos=np.ones(len(self.data_pos))
+        self.label_neg=np.zeros(len(self.data_neg))
+        self.data=np.concatenate((self.data_pos,self.data_neg),axis=0)
+        self.label=np.concatenate((self.label_pos,self.label_neg),axis=0)
+        self.train_X=self.data
+        self.train_Y=self.label
         self.index=0
 
     def next_batch(self,batch_size=32):
@@ -74,7 +78,7 @@ class logistic_regression:
         output=1.0/(1.0+np.exp(-output))
         return output
 
-    def train(self,input,label,learning_rate=0.1,l2=0.1):
+    def train(self,input,label,learning_rate=0.01,l2=0.1):
         label=np.reshape(label,(-1,1))
         batch_size=input.shape[0]
         output=self.predict(input)
